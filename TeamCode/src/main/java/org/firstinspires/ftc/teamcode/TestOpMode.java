@@ -1,11 +1,16 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.bosch.BHI260IMU;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.ImuOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -36,16 +41,22 @@ public class TestOpMode extends LinearOpMode
     public Servo rightIntakeRaise;
     public ControllerInput controllerInput;
 
-    public BNO055IMU imu; //define IMU (for GYRO).
+    public IMU imu; //define IMU (for GYRO).
     public double targetYaw;
+    public double initalYaw;
+    public double lastError = 0.0;
     // YAW position
     // This will be modified by the user with joysticks, and the robot will use a
     // PID controller to align itself with the target YAW.
 
+    public double frontLeftDrive;
+    public double frontRightDrive;
+    public double backLeftDrive;
+    public double backRightDrive;
+
     @Override
     public void runOpMode() throws InterruptedException
     {
-        robot.create(hardwareMap);
 
         // Runs when "init" is pressed
 
@@ -56,24 +67,29 @@ public class TestOpMode extends LinearOpMode
         frontRightDriveMotor = hardwareMap.get(DcMotor.class, "frontRightDriveMotor");
         backLeftDriveMotor = hardwareMap.get(DcMotor.class, "backLeftDriveMotor");
         backRightDriveMotor = hardwareMap.get(DcMotor.class, "backRightDriveMotor");
+
+        frontLeftDriveMotor.setDirection(DcMotor.Direction.REVERSE);
+        backLeftDriveMotor.setDirection(DcMotor.Direction.REVERSE);
         // INTAKE
         // Spin motors (1150RPMs)
-        leftIntakeSpinMotor = hardwareMap.get(DcMotor.class, "leftIntakeMotor");
-        rightIntakeSpinMotor = hardwareMap.get(DcMotor.class, "rightIntakeMotor");
+        //leftIntakeSpinMotor = hardwareMap.get(DcMotor.class, "leftIntakeMotor");
+        //rightIntakeSpinMotor = hardwareMap.get(DcMotor.class, "rightIntakeMotor");
         // Raise servos
-        leftIntakeRaise = hardwareMap.get(Servo.class, "leftIntakeRaise");
-        rightIntakeRaise = hardwareMap.get(Servo.class, "rightIntakeRaise");
+        //leftIntakeRaise = hardwareMap.get(Servo.class, "leftIntakeRaise");
+        //rightIntakeRaise = hardwareMap.get(Servo.class, "rightIntakeRaise");
 
         //Reset and initalize the IMU.
         // It wanted parameters so I create a new parameter obj
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        parameters.calibrationDataFile = "BNO055IMUCalibration.json";
-        parameters.loggingEnabled = true;
-        parameters.loggingTag = "IMU";
-        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        IMU.Parameters parameters = new IMU.Parameters(
+                new RevHubOrientationOnRobot(
+                        RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
+                        RevHubOrientationOnRobot.UsbFacingDirection.DOWN
+                )
+        );
+
+        imu = hardwareMap.get(IMU.class, "imu");
+
+
         // This resets it
         imu.initialize(parameters);
 
@@ -90,13 +106,18 @@ public class TestOpMode extends LinearOpMode
         // Main loop
         while (opModeIsActive())
         {
-            controllerInput.mainloop(gamepad1);
+            //mainloop(gamepad1);
             moveTele();
         }
     }
 
+    //public void mainloop(Gamepad g)
+    //{
+      //  refresh(g);
+    //}
+
     public double getYawDegrees() {
-        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        Orientation angles = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         return AngleUnit.DEGREES.normalize(angles.firstAngle);
     }
 
@@ -109,19 +130,40 @@ public class TestOpMode extends LinearOpMode
 
     public double calculateRotationPower(double targetRotation, double threshold) {
         double currentRotation = getYawDegrees();
-        double deltaRotation = targetRotation - currentRotation;
+        double error = targetRotation - currentRotation;
         // Such that if the robot is at 15d and the targetRotation = 0d,
         // this will be equal to -15d. For now I'll use a > or < but once
         // it works, I will switch to PID.
 
-        if (deltaRotation < -threshold) { return -0.2; }
-        if (deltaRotation >  threshold) { return  0.2; }
-        else { return 0.0; }
+        double correction;
+
+        if (Math.abs(error) > threshold) {
+            correction = ((error * 0.2 ) + (0.5 * (error - lastError))) * -0.1;
+            if (initalYaw == targetYaw) {
+                initalYaw = currentRotation;
+            }
+        }
+        else { correction = 0.0; initalYaw = targetYaw; };
+
+        double speed = 1.0;
+
+        if (correction < -1) { correction = -1;}
+        if (correction > 1) { correction = 1; }
+
+        lastError = error;
+
+        if (Math.abs(error) > 45) { speed = 1.0;}
+        if (Math.abs(error) > 80) { speed = 0.8;}
+        if (Math.abs(error) > 100) { speed = 0.5;}
+        if (Math.abs(error) > 120) { speed = 0.3;}
+        if (Math.abs(error) > 160) { speed = 0.2;}
+
+        return (correction + (Math.abs(correction) / correction) * 0.04) * speed;
     }
 
     void calculateMovementTele() {
-        double mx = controllerInput.movement_x;
-        double my = controllerInput.movement_y;
+        double mx = 0.0;// movement_x;
+        double my = 0.0;// movement_y;
         //double r = controllerInput.rotation; <- Leave commented out for now
         double r = calculateRotationPower(0.0, 3.0);
 
@@ -137,18 +179,18 @@ public class TestOpMode extends LinearOpMode
         // more to rotate). Learnt this last year.
         double movementMultiplier = 1.0 - Math.abs(r);
 
-        desiredMovements.frontLeftDrive = ((mx + my) * movementMultiplier + r) / denominator;
-        desiredMovements.frontRightDrive = ((mx - my) * movementMultiplier - r) / denominator;
-        desiredMovements.backLeftDrive = ((mx - my) * movementMultiplier + r) / denominator;
-        desiredMovements.backRightDrive = ((mx + my) * movementMultiplier - r) / denominator;
+        frontLeftDrive = ((mx + my) * movementMultiplier + r) / denominator;
+        frontRightDrive = ((mx - my) * movementMultiplier - r) / denominator;
+        backLeftDrive = ((mx - my) * movementMultiplier + r) / denominator;
+        backRightDrive = ((mx + my) * movementMultiplier - r) / denominator;
     }
 
     public void setMotorPowers()
     {
-        frontLeftDriveMotor.setPower(desiredMovements.frontLeftDrive);
-        frontRightDriveMotor.setPower(desiredMovements.frontRightDrive);
-        backLeftDriveMotor.setPower(desiredMovements.backLeftDrive);
-        backRightDriveMotor.setPower(desiredMovements.backRightDrive);
+        frontLeftDriveMotor.setPower(frontLeftDrive);
+        frontRightDriveMotor.setPower(frontRightDrive);
+        backLeftDriveMotor.setPower(backLeftDrive);
+        backRightDriveMotor.setPower(backRightDrive);
     }
 
     public void moveTele()
@@ -197,9 +239,6 @@ public class TestOpMode extends LinearOpMode
             if (settings.rotationAxis.equals("rx")) { rotation = rx; }
         }
 
-        public void mainloop(Gamepad g)
-        {
-            refresh(g);
-        }
+
     }
 }

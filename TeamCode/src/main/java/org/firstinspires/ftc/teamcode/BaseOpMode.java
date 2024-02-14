@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -12,6 +13,7 @@ import org.firstinspires.ftc.teamcode.Core.ControllerInput;
 import org.firstinspires.ftc.teamcode.Core.Robot;
 
 @TeleOp
+@Disabled
 public class BaseOpMode extends LinearOpMode
 {
     Robot robot;

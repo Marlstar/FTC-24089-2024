@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.Core;
 
 import com.qualcomm.robotcore.hardware.Gamepad;
 
-
 public class ControllerInput {
     static class Settings {
         boolean movementStick = true;
