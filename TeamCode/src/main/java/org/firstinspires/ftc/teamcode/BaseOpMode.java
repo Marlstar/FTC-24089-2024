@@ -23,6 +23,7 @@ public class BaseOpMode extends LinearOpMode
 
         // Runs when "init" is pressed
         robot.drive.motors.init();
+        robot.drive.robotIMU.init();
 
         if (isStopRequested()) return;
         waitForStart();
@@ -34,7 +35,6 @@ public class BaseOpMode extends LinearOpMode
         while (opModeIsActive())
         {
             robot.controllerInput.mainloop(gamepad1);
-
             robot.drive.movement.moveTele();
         }
     }
