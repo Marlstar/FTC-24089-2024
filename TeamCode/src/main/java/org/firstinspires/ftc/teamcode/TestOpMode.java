@@ -78,8 +78,7 @@ public class TestOpMode extends LinearOpMode
         //leftIntakeRaise = hardwareMap.get(Servo.class, "leftIntakeRaise");
         //rightIntakeRaise = hardwareMap.get(Servo.class, "rightIntakeRaise");
 
-        //Reset and initalize the IMU.
-        // It wanted parameters so I create a new parameter obj
+        //Reset and initialise the IMU.
         IMU.Parameters parameters = new IMU.Parameters(
                 new RevHubOrientationOnRobot(
                         RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
@@ -106,7 +105,7 @@ public class TestOpMode extends LinearOpMode
         // Main loop
         while (opModeIsActive())
         {
-            //mainloop(gamepad1);
+            //controllerInput.mainloop(gamepad1);
             moveTele();
         }
     }
@@ -121,7 +120,7 @@ public class TestOpMode extends LinearOpMode
         return AngleUnit.DEGREES.normalize(angles.firstAngle);
     }
 
-    class DesiredMovements {
+    public class DesiredMovements {
         public double frontLeftDrive;
         public double frontRightDrive;
         public double backLeftDrive;
@@ -145,18 +144,21 @@ public class TestOpMode extends LinearOpMode
         }
         else { correction = 0.0; initalYaw = targetYaw; };
 
-        double speed = 1.0;
+        double speed;
 
         if (correction < -1) { correction = -1;}
         if (correction > 1) { correction = 1; }
 
         lastError = error;
 
-        if (Math.abs(error) > 45) { speed = 1.0;}
-        if (Math.abs(error) > 80) { speed = 0.8;}
-        if (Math.abs(error) > 100) { speed = 0.5;}
-        if (Math.abs(error) > 120) { speed = 0.3;}
         if (Math.abs(error) > 160) { speed = 0.2;}
+        else if (Math.abs(error) > 120) { speed = 0.3; }
+        else if (Math.abs(error) > 100) { speed = 0.5; }
+        else if (Math.abs(error) > 80) { speed = 0.8; }
+        else if (Math.abs(error) > 45) { speed = 1.0; }
+
+        else { speed = 0.0; }
+
 
         return (correction + (Math.abs(correction) / correction) * 0.04) * speed;
     }
