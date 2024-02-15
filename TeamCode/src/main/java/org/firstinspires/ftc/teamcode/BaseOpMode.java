@@ -16,7 +16,7 @@ import org.firstinspires.ftc.teamcode.Core.Robot;
 @Disabled
 public class BaseOpMode extends LinearOpMode
 {
-    Robot robot;
+    Robot robot = new Robot();
 
     @Override
     public void runOpMode() throws InterruptedException

@@ -1,37 +1,28 @@
 package org.firstinspires.ftc.teamcode.Core;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
-import com.qualcomm.robotcore.hardware.IMU;
-import com.qualcomm.robotcore.hardware.ImuOrientationOnRobot;
 
 // All the imports the IMU wanted:
-import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
-import org.firstinspires.ftc.teamcode.Core.Vector;
-
 
 public class Robot {
     public ControllerInput controllerInput;
-    public HardwareMap hwMap;
+    public HardwareMap hardwareMap;
 
     /**
      * @param h A reference to the "hardwareMap"
      */
     public void create(HardwareMap h)
     {
-        hwMap = h;
+        hardwareMap = h;
     }
 
     public class Drive {
@@ -57,10 +48,10 @@ public class Robot {
                 // Initialising motors
                 // MOVEMENT
                 // Drive motors
-                frontLeftDriveMotor = hwMap.get(DcMotor.class, "frontLeftDriveMotor");
-                frontRightDriveMotor = hwMap.get(DcMotor.class, "frontRightDriveMotor");
-                backLeftDriveMotor = hwMap.get(DcMotor.class, "backLeftDriveMotor");
-                backRightDriveMotor = hwMap.get(DcMotor.class, "backRightDriveMotor");
+                frontLeftDriveMotor = hardwareMap.get(DcMotor.class, "frontLeftDriveMotor");
+                frontRightDriveMotor = hardwareMap.get(DcMotor.class, "frontRightDriveMotor");
+                backLeftDriveMotor = hardwareMap.get(DcMotor.class, "backLeftDriveMotor");
+                backRightDriveMotor = hardwareMap.get(DcMotor.class, "backRightDriveMotor");
                 // INTAKE
                 // Spin motors (1150RPMs)
                 // leftIntakeSpinMotor = hwMap.get(DcMotor.class, "leftIntakeMotor");
@@ -69,9 +60,9 @@ public class Robot {
                 // leftIntakeRaise = hwMap.get(Servo.class, "leftIntakeRaise");
                 // rightIntakeRaise = hwMap.get(Servo.class, "rightIntakeRaise");
             }
-        } public Motors motors;
+        } public Motors motors = new Motors();
 
-        public class IMU {
+        public class IMUManager {
             public IMU imu;
             public double targetYaw;
             public double initalYaw;
@@ -100,7 +91,7 @@ public class Robot {
                 initIMU();
             }
 
-        } public IMU robotIMU;
+        } public IMUManager robotIMU = new IMUManager();
 
 
         public class Movement {
@@ -109,12 +100,11 @@ public class Robot {
                 public double frontRightDrive;
                 public double backLeftDrive;
                 public double backRightDrive;
-            } public DesiredMovements desiredMovements;
+            } public DesiredMovements desiredMovements = new DesiredMovements();
 
             public double calculate_PID(double kP, double kD, double currentError, double lastError) {
                 // Do not change this.
-                double correction = ((currentError * kP ) + (kD * (currentError - lastError))) * -0.1;
-                return correction;
+                return ((currentError * kP ) + (kD * (currentError - lastError))) * -0.1;
             }
 
             public double calculateRotationPower(double targetRotation, double threshold) {
@@ -222,6 +212,6 @@ public class Robot {
                 calculateMovementTele();
                 setMotorPowers();
             }
-        } public Movement movement;
-    } public Drive drive;
+        } public Movement movement = new Movement();
+    } public Drive drive = new Drive();
 }
