@@ -14,7 +14,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 
 public class Robot {
-    public ControllerInput controllerInput;
+    public ControllerInput controllerInput = new ControllerInput();
     public HardwareMap hardwareMap;
 
     /**
@@ -52,6 +52,9 @@ public class Robot {
                 frontRightDriveMotor = hardwareMap.get(DcMotor.class, "frontRightDriveMotor");
                 backLeftDriveMotor = hardwareMap.get(DcMotor.class, "backLeftDriveMotor");
                 backRightDriveMotor = hardwareMap.get(DcMotor.class, "backRightDriveMotor");
+
+                frontLeftDriveMotor.setDirection(DcMotor.Direction.REVERSE);
+                backLeftDriveMotor.setDirection(DcMotor.Direction.REVERSE);
                 // INTAKE
                 // Spin motors (1150RPMs)
                 // leftIntakeSpinMotor = hwMap.get(DcMotor.class, "leftIntakeMotor");
@@ -134,27 +137,27 @@ public class Robot {
                 return (correction + (Math.abs(correction) / correction) * 0.04) * speed;
             }
 
-            void setLeftSidePower(double power) {
+            public void setLeftSidePower(double power) {
                 desiredMovements.frontLeftDrive = power;
                 desiredMovements.backLeftDrive = power;
             }
 
-            void setRightSidePower(double power) {
+            public void setRightSidePower(double power) {
                 desiredMovements.frontRightDrive = power;
                 desiredMovements.backRightDrive = power;
             }
 
-            void addFlBrDiagonal(double power) {
+            public void addFlBrDiagonal(double power) {
                 desiredMovements.frontLeftDrive += power;
                 desiredMovements.backRightDrive += power;
             }
 
-            void addFrBlDiagonal(double power) {
+            public void addFrBlDiagonal(double power) {
                 desiredMovements.frontRightDrive += power;
                 desiredMovements.backLeftDrive += power;
             }
 
-            void driveInDirection(double degrees, double power) {
+            public void driveInDirection(double degrees, double power) {
                 degrees -= robotIMU.getYawDegrees();
                 Vector driveVector = new Vector();
                 if (degrees < -180) { degrees += 360;}
@@ -168,15 +171,15 @@ public class Robot {
                 setMotorPowers();
             }
 
-            void stopMotors() {
+            public  void stopMotors() {
                 setLeftSidePower(0.0);
                 setRightSidePower(0.0);
             }
 
-            void calculateMovementTele() {
-                double mx = controllerInput.movement_x;
-                double my = controllerInput.movement_y;
-                double controllerR = controllerInput.rotation;
+            public void calculateMovementTele(double mx, double my, double controllerR) {
+                //double mx = 0;//controllerInput.movement_x;
+                //double my = 0;//controllerInput.movement_y;
+                //double controllerR = 0;//controllerInput.rotation;
                 robotIMU.targetYaw += controllerR; // Assuming -1 -> 1
                 if (robotIMU.targetYaw < -180) { robotIMU.targetYaw += 360; }
                 if (robotIMU.targetYaw >  180) { robotIMU.targetYaw -= 360; }
@@ -185,14 +188,15 @@ public class Robot {
                 // Denominator is the largest motor power (absolute value) or 1
                 // This ensures all the powers maintain the same ratio, but only when
                 // at least one is out of the range [-1, 1]
-                double denominator = Math.max(Math.abs(my) + Math.abs(mx) + Math.abs(r), 1);
+                double denominator = 1;//Math.max(Math.abs(my) + Math.abs(mx) + Math.abs(r), 1);
 
                 //If we are correcting yaw, slow down the motors so that it makes a difference
                 // (If they are all 100% speed then decrease to 80% so that the motors can speed up
                 // more to rotate). Learnt this last year.
-                double movementMultiplier = 1.0 - Math.abs(r);
+                double movementMultiplier = 1.0;//;1.0 - Math.abs(r);
 
                 // Marley's original code (modified to add a movement multiplier)
+
                 desiredMovements.frontLeftDrive = ((mx + my) * movementMultiplier + r) / denominator;
                 desiredMovements.frontRightDrive = ((mx - my) * movementMultiplier - r) / denominator;
                 desiredMovements.backLeftDrive = ((mx - my) * movementMultiplier + r) / denominator;
@@ -209,7 +213,7 @@ public class Robot {
 
             public void moveTele()
             {
-                calculateMovementTele();
+                calculateMovementTele(0, 0, 0);
                 setMotorPowers();
             }
         } public Movement movement = new Movement();

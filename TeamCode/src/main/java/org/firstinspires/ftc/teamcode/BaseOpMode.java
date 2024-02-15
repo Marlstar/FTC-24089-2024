@@ -13,7 +13,7 @@ import org.firstinspires.ftc.teamcode.Core.ControllerInput;
 import org.firstinspires.ftc.teamcode.Core.Robot;
 
 @TeleOp
-@Disabled
+//@Disabled
 public class BaseOpMode extends LinearOpMode
 {
     Robot robot = new Robot();
@@ -36,8 +36,12 @@ public class BaseOpMode extends LinearOpMode
         // Main loop
         while (opModeIsActive())
         {
-            robot.controllerInput.mainloop(gamepad1);
-            robot.drive.movement.moveTele();
+            double sx = gamepad1.right_stick_y * 1;
+            double sy = gamepad1.left_stick_y * -1;
+            double rsx = gamepad1.right_stick_x * 1;
+            telemetry.addLine("SX: " + sx);
+            robot.drive.movement.calculateMovementTele(sx, sy, -rsx);
+            robot.drive.movement.setMotorPowers();
         }
     }
 }

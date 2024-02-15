@@ -9,7 +9,7 @@ public class ControllerInput {
         // Left = True | Right = False
         String rotationAxis = "rx";
         double strafeCorrection = 1.1;
-    } Settings settings;
+    } Settings settings = new Settings();
 
     // Left stick
     double lx;
