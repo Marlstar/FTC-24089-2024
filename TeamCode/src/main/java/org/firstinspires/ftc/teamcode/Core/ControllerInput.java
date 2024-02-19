@@ -33,13 +33,10 @@ public class ControllerInput {
         ry = -gamepad.right_stick_y;
 
         // Movement input (facilitates stick selection within settings)
-        movement_x = settings.movementStick ? lx : rx;
-        movement_y = settings.movementStick ? ly : ry;
+        movement_x = lx;
+        movement_y = ly;
 
         movement_x *= settings.strafeCorrection;
-
-        // Rotation
-        if (settings.rotationAxis.equals("lx")) { rotation = lx; }
         if (settings.rotationAxis.equals("rx")) { rotation = rx; }
     }
 

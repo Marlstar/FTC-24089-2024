@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.Core;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -16,13 +17,15 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 public class Robot {
     public ControllerInput controllerInput = new ControllerInput();
     public HardwareMap hardwareMap;
+    public Gamepad gamepad;
 
     /**
      * @param h A reference to the "hardwareMap"
      */
-    public void create(HardwareMap h)
+    public void create(HardwareMap h, Gamepad g)
     {
         hardwareMap = h;
+        gamepad = g;
     }
 
     public class Drive {
@@ -176,10 +179,11 @@ public class Robot {
                 setRightSidePower(0.0);
             }
 
-            public void calculateMovementTele(double mx, double my, double controllerR) {
-                //double mx = 0;//controllerInput.movement_x;
-                //double my = 0;//controllerInput.movement_y;
-                //double controllerR = 0;//controllerInput.rotation;
+            public void calculateMovementTele() {
+                controllerInput.refresh(gamepad);
+                double mx = controllerInput.movement_x;
+                double my = controllerInput.movement_y;
+                double controllerR = controllerInput.rotation;
                 robotIMU.targetYaw += controllerR; // Assuming -1 -> 1
                 if (robotIMU.targetYaw < -180) { robotIMU.targetYaw += 360; }
                 if (robotIMU.targetYaw >  180) { robotIMU.targetYaw -= 360; }
@@ -188,7 +192,7 @@ public class Robot {
                 // Denominator is the largest motor power (absolute value) or 1
                 // This ensures all the powers maintain the same ratio, but only when
                 // at least one is out of the range [-1, 1]
-                double denominator = 1;//Math.max(Math.abs(my) + Math.abs(mx) + Math.abs(r), 1);
+                double denominator = 1.0;//Math.max(Math.abs(my) + Math.abs(mx) + Math.abs(r), 1);
 
                 //If we are correcting yaw, slow down the motors so that it makes a difference
                 // (If they are all 100% speed then decrease to 80% so that the motors can speed up
@@ -197,10 +201,10 @@ public class Robot {
 
                 // Marley's original code (modified to add a movement multiplier)
 
-                desiredMovements.frontLeftDrive = ((mx + my) * movementMultiplier + r) / denominator;
-                desiredMovements.frontRightDrive = ((mx - my) * movementMultiplier - r) / denominator;
-                desiredMovements.backLeftDrive = ((mx - my) * movementMultiplier + r) / denominator;
-                desiredMovements.backRightDrive = ((mx + my) * movementMultiplier - r) / denominator;
+                desiredMovements.frontLeftDrive = mx + my;// + r;//((mx + my) * movementMultiplier + r) / denominator;
+                desiredMovements.frontRightDrive = mx - my;//; - r;//((mx - my) * movementMultiplier - r) / denominator;
+                desiredMovements.backLeftDrive = mx - my;// + r;//((mx - my) * movementMultiplier + r) / denominator;
+                desiredMovements.backRightDrive = mx + my;//; - r;//((mx + my) * movementMultiplier - r) / denominator;
             }
 
             public void setMotorPowers()
@@ -213,7 +217,7 @@ public class Robot {
 
             public void moveTele()
             {
-                calculateMovementTele(0, 0, 0);
+                calculateMovementTele();
                 setMotorPowers();
             }
         } public Movement movement = new Movement();

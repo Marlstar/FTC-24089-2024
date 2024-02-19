@@ -21,7 +21,7 @@ public class BaseOpMode extends LinearOpMode
     @Override
     public void runOpMode() throws InterruptedException
     {
-        robot.create(hardwareMap);
+        robot.create(hardwareMap, gamepad1);
 
         // Runs when "init" is pressed
         robot.drive.motors.init();
@@ -36,11 +36,7 @@ public class BaseOpMode extends LinearOpMode
         // Main loop
         while (opModeIsActive())
         {
-            double sx = gamepad1.right_stick_y * 1;
-            double sy = gamepad1.left_stick_y * -1;
-            double rsx = gamepad1.right_stick_x * 1;
-            telemetry.addLine("SX: " + sx);
-            robot.drive.movement.calculateMovementTele(sx, sy, -rsx);
+            robot.drive.movement.moveTele();
             robot.drive.movement.setMotorPowers();
         }
     }
