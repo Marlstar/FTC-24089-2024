@@ -137,7 +137,8 @@ public class Robot {
                 if (Math.abs(error) > 120) { speed = 0.3;}
                 if (Math.abs(error) > 160) { speed = 0.2;}
 
-                return (correction + (Math.abs(correction) / correction) * 0.04) * speed;
+                // Handle division by zero
+                return (correction > -0.01 && correction < 0.01) ? 0.0 : (correction + (Math.abs(correction) / correction) * 0.04) * speed;
             }
 
             public void setLeftSidePower(double power) {
